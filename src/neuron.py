@@ -2,8 +2,8 @@ import numpy as np
 
 class Neuron:
     """
-        Neuron is an abstract to represent neuron.
-        You should use predefined neurons of create a new class.
+        Neuron is an abstract class to represent a neuron.
+        You should use predefined neurons or create a new class.
         
         Moreover, Neuron is a low-level class, you should only initialize neuron.
         Then use a Network to manipulate them.
@@ -56,7 +56,7 @@ class Neuron:
             Reset the memoization to compute another output.
 
             :return: The output of the neuron.
-            :rtype: double
+            :rtype: float
         """
         if not self.y:
             # Retrieve the inputs
