@@ -44,7 +44,7 @@ class Network:
             neuron.get_gradient()
 
 
-    def descend_gradient(learning_rate = 0.3, batch_size = 1):
+    def descend_gradient(self, learning_rate = 0.3, batch_size = 1):
         '''apply the gradient descent in each neuron'''
 
         for neuron in self.neurons:

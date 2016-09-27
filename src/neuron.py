@@ -28,7 +28,7 @@ class Neuron:
 
         #gradient accumulator for batches
 
-        self.acc_dJdw = None
+        self.acc_dJdw = 0
 
 
     def evaluate(self):
@@ -36,10 +36,7 @@ class Neuron:
         ''' compute the output of the neuron'''
         if not self.y:
             self.x = np.array([parent.evaluate() for parent in self.parents])
-            print(self.name)
-            print(len(self.parents))
-            print(self.x)
-            print(self.w)
+
             self.y = self.activation_function(self.x.T.dot(self.w))
 
         return self.y
@@ -64,15 +61,16 @@ class Neuron:
             for i, parent in enumerate(self.parents):
                 self.dJdx[parent.name] = dJdh*self.w[i]              
 
+            print(dJdx)
             self.acc_dJdw += dJdh*self.x    #le x sera t il la?? => il faut evaluer avant d'entrainer
-
+        
         return self.dJdx
 
 
-    def descend_gradient(self, learning_rate = 0.3, batch_size = 1):
+    def descend_gradient(self, learning_rate, batch_size):
 
         '''apply changes to the weights'''
-
+        print(self.acc_dJdw)
         self.w -= learning_rate/batch_size*self.acc_dJdw
         self.reset_accumulator()
 
@@ -97,7 +95,7 @@ class Neuron:
 
         '''reset the gradient accumuator'''
 
-        self.acc_dJdw = None
+        self.acc_dJdw = 0
 
 
     def activation_function(self, t):
@@ -144,7 +142,7 @@ class InputNeuron(Neuron):
         return self.value
 
     def evaluate(self):
-
+        self.x=self.value
         return self.value
 
 
@@ -288,7 +286,7 @@ class SquaredErrorNeuron(Neuron):
         return g
 
 
-    def descend_gradient(self):
+    def descend_gradient(self, learning_rate, batch_size):
         
         self.w=self.w
 
