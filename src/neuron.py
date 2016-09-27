@@ -70,6 +70,7 @@ class Neuron:
         '''apply changes to the weights'''
 
         self.w -= learning_rate/batch_size*self.acc_dJdw
+        self.reset_accumulator()
 
 
     def add_child(self, child):
@@ -127,6 +128,12 @@ class InputNeuron(Neuron):
         '''change the value of the input neuron'''
 
         self.value = value
+
+    def get_gradient(self):
+
+        for parent in self.parents:
+            parent.get_gradient()
+
 
     def activation_function(x):
         '''override the activation function to give as output the input value of the network'''
