@@ -28,7 +28,7 @@ class Neuron:
 
         #gradient accumulator for batches
 
-        self.acc_dJdw = 0.0
+        self.acc_dJdw = None
 
 
     def evaluate(self):
@@ -92,7 +92,7 @@ class Neuron:
 
         '''reset the gradient accumuator'''
 
-        self.acc_dJdw = 0.0
+        self.acc_dJdw = None
 
 
     def activation_function(self, t):
