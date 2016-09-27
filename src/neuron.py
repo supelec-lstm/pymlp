@@ -25,11 +25,12 @@ class Neuron:
         # Parameters of the neuron
         self.name = name
         self.parents = parents or []
-        self.w = init_function(len(parents)) if init_function else np.random.rand(len(parents))
+        init_function = init_function or (lambda n: np.random.rand(n))
+        self.w = init_function(len(self.parents))
         self.children = []
 
         # Update parents
-        for parent in parents:
+        for parent in self.parents:
             parent.add_child(self)
 
         # Attributes for memoization
@@ -94,7 +95,7 @@ class Neuron:
             :return: The gradient with respect to its inputs.
             :rtype: dict
         """
-        if not self._dJdx:
+        if not self.dJdx:
             # Compute dJ/dy
             dJdy = 0
             for child in self.children:
@@ -168,7 +169,7 @@ class LinearNeuron(Neuron):
         return np.dot(self.w, self.x)
 
     def gradient_activation_function(self):
-        return self.w
+        return 1
 
 class SigmoidNeuron(Neuron):
     def activation_function(self):
@@ -189,16 +190,47 @@ class ReluNeuron(Neuron):
         return np.maximum(0, self.x)
 
     def gradient_activation_function(self):
-        return (x >= 0).astype(float)
+        return (self.x >= 0).astype(float)
 
 class SoftmaxNeuron(Neuron):
-    def __init__(self, name, parents=None, init_function=None, parent_indice):
-        Neuron.__init__(self, name, parents, init_function)
+    def __init__(self, name, parent_indice, parents=None):
+        Neuron.__init__(self, name, parents)
         self.parent_indice = parent_indice
 
     def activation_function(self):
-        total = np.sum(np.exp(self.x))
-        return np.exp(self.x[self.parent_indice]) / total
+        self.total = np.sum(np.exp(self.x))
+        return np.exp(self.x[self.parent_indice]) / self.total
 
-    def gradient_activation_function(self):
-        return self.y * (1 - self.y)
+    def get_gradient(self):
+        if not self.dJdx:
+            # Compute dJ/dy
+            dJdy = 0
+            for child in self.children:
+                gradient = child.get_gradient()
+                dJdy += gradient[self.name]
+            # Compute dJ/dx
+            self.dJdx = {}
+            for i, parent in enumerate(self.parents):
+                if self.parent_indice == i:
+                    dydxi = self.y * (1-self.y) 
+                else:
+                    dydxi = - self.y * (np.exp(self.x[i])/self.total)
+                self.dJdx[parent.name] = dJdy * dydxi
+        return self.dJdx
+
+class ConstantGradientNeuron(Neuron):
+    """
+        This neuron has no physical reality.
+        It is only useful for testing.
+    """
+    def __init__(self, name, parents=None, init_function=None, value=0):
+        Neuron.__init__(self, name, parents, init_function)
+        self.value = value
+
+    def set_value(self, value):
+        self.value = value
+
+    def get_gradient(self):
+        if not self.dJdx:
+            self.dJdx = {parent.name: self.value for parent in self.parents}
+        return self.dJdx
