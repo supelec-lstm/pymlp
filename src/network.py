@@ -1,5 +1,5 @@
 from neuron import *
-import numy as np
+import numpy as np
 
 class Network:
     '''creates an abstract network assembling neurons'''
@@ -10,7 +10,7 @@ class Network:
         self.neurons = neurons
         self.inputs = inputs
         self.outputs = outputs
-        self.expected_outputs = expected outputs
+        self.expected_outputs = expected_outputs
         self.cost_neuron = cost_neuron
 
 
@@ -21,7 +21,7 @@ class Network:
         each neuron memorize its values'''
 
         for xi, neuron in zip(x, self.inputs):
-            neuron.setvalue(xi)
+            neuron.set_value(xi)
 
         self.reset_memoization()
 
@@ -36,11 +36,11 @@ class Network:
         self.propagate(x)
 
         for yi, neuron in zip(y, self.expected_outputs):
-            neuron.setvalue(yi)
+            neuron.set_value(yi)
 
-        cost_neuron.evaluate()
+        self.cost_neuron.evaluate()
 
-        for neuron in neurons:
+        for neuron in self.inputs:
             neuron.get_gradient()
 
 
@@ -60,12 +60,12 @@ class Network:
         self.descend_gradient(learning_rate, batch_size = len(X))
 
 
-    def stochastic_gradient descent(self, X, Y, learning_rate = 0.3):   #added learning rate argument
+    def stochastic_gradient_descent(self, X, Y, learning_rate = 0.3):   #added learning rate argument
         '''realize a stochastic gradient descent over a batch'''
 
         for x, y in zip(X, Y):
             self.back_propagate(x, y)
-            self.descend_gradient(learning_rate, batch_size = len(X))        
+            self.descend_gradient(learning_rate, len(X))        
 
 
     def reset_memoization(self):

@@ -5,7 +5,7 @@ class Neuron:
     
     '''create an independant neuron'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
 
         '''initialization of the neuron'''
 
@@ -22,7 +22,7 @@ class Neuron:
 
         #memoization variables
 
-        self.dJdw = None
+        self.dJdx = {}
         self.x = None
         self.y = None
 
@@ -35,8 +35,12 @@ class Neuron:
 
         ''' compute the output of the neuron'''
         if not self.y:
-            self.x = np.array([parent.evaluate() for parent in parents])
-            self.y = activation_function(self.x.T.dot(self.w))
+            self.x = np.array([parent.evaluate() for parent in self.parents])
+            print(self.name)
+            print(len(self.parents))
+            print(self.x)
+            print(self.w)
+            self.y = self.activation_function(self.x.T.dot(self.w))
 
         return self.y
 
@@ -49,15 +53,15 @@ class Neuron:
 
             dJdh = 0
 
-            for child in children:
+            for child in self.children:
                 g = child.get_gradient()
                 dJdh += g[self.name]
 
-            dJdh *= gradient_activation_function(self.x.T.dot(self.w))
+            dJdh *= self.gradient_activation_function(self.x.T.dot(self.w))
 
             self.dJdx = {}
 
-            for i, parent in enumerate(parents):
+            for i, parent in enumerate(self.parents):
                 self.dJdx[parent.name] = dJdh*self.w[i]              
 
             self.acc_dJdw += dJdh*self.x    #le x sera t il la?? => il faut evaluer avant d'entrainer
@@ -77,7 +81,7 @@ class Neuron:
 
         '''add the newly created child to the child list'''
         
-        self.child.append(child)
+        self.children.append(child)
 
 
     def reset_memoization(self):
@@ -86,7 +90,7 @@ class Neuron:
 
         self.x = None
         self.y = None
-        self.dJdw = None
+        self.dJdw = {}
 
 
     def reset_accumulator(self):
@@ -118,13 +122,12 @@ class Neuron:
 class InputNeuron(Neuron):
     '''create an input Neuron for the network'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
         '''initialize the input neuron with its value'''
 
         Neuron.__init__(self, name, parents, init_function)
-        self.value = value
 
-    def set_value(self, x):
+    def set_value(self, value):
         '''change the value of the input neuron'''
 
         self.value = value
@@ -135,29 +138,32 @@ class InputNeuron(Neuron):
             parent.get_gradient()
 
 
-    def activation_function(x):
+    def activation_function(self, x):
         '''override the activation function to give as output the input value of the network'''
 
         return self.value
 
+    def evaluate(self):
+
+        return self.value
 
 
 class LinearNeuron(Neuron):
     '''create a Neuron with a linear activation function'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
         '''initialize a linear neuron'''
 
-        Neuron.__init__(self, name, parents = None, init_function = None)
+        Neuron.__init__(self, name, parents, init_function)
 
 
-    def activation_function(x):
+    def activation_function(self, x):
         '''linear activation function'''
 
         return x
 
 
-    def gradient_activation_function(x):
+    def gradient_activation_function(self, x):
         '''gradient of the activation function'''
 
         return 1
@@ -166,40 +172,40 @@ class LinearNeuron(Neuron):
 class SigmoidNeuron(Neuron):
     '''create a Neuron with a sigmoid activation function'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
         '''initialize a sigmoid neuron'''
 
-        Neuron.__init__(self, name, parents = None, init_function = None)
+        Neuron.__init__(self, name, parents, init_function)
 
 
-    def activation_function(x):
+    def activation_function(self, x):
         '''sigmoid activation function'''
 
         return 1/(1+exp(-x))
 
 
-    def gradient_activation_function(x):
+    def gradient_activation_function(self, x):
         '''gradient of the activation function'''
 
-        return activation_function(x)(1-activation_function(x))
+        return self.activation_function(x)*(1-self.activation_function(x))
 
 
 class TanhNeuron(Neuron):
     '''create a Neuron with a hyperbolic tangent activation function'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
         '''initialize a hyperbolic tangent neuron'''
 
-        Neuron.__init__(self, name, parents = None, init_function = None)
+        Neuron.__init__(self, name, parents, init_function)
 
 
-    def activation_function(x):
+    def activation_function(self, x):
         '''hyperbolic tangent activation function'''
 
         return tanh(x)
 
 
-    def gradient_activation_function(x):
+    def gradient_activation_function(self, x):
         '''gradient of the activation function'''
 
         return 1-tanh(x)**2
@@ -209,19 +215,19 @@ class TanhNeuron(Neuron):
 class ReluNeuron(Neuron):
     '''create a Neuron with a Relu activation function'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
         '''initialize a Relu neuron'''
 
-        Neuron.__init__(self, name, parents = None, init_function = None)
+        Neuron.__init__(self, name, parents, init_function)
 
 
-    def activation_function(x):
+    def activation_function(self, x):
         '''Relu activation function'''
 
         return x if x >= 0.0 else 0
 
 
-    def gradient_activation_function(x):
+    def gradient_activation_function(self, x):
         '''gradient of the activation function'''
 
         return 1 if x > 0.0 else 0
@@ -231,19 +237,19 @@ class ReluNeuron(Neuron):
 class SoftMaxNeuron(Neuron):
     '''create a Neuron with a softmax activation function'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
         '''initialize a softmax neuron'''
 
-        Neuron.__init__(self, name, parents = None, init_function = None)
+        Neuron.__init__(self, name, parents, init_function)
 
 
-    def activation_function(x):
+    def activation_function(self, x):
         '''softmax activation function'''
 
-        return 
+        pass
 
 
-    def gradient_activation_function(x):
+    def gradient_activation_function(self, x):
         '''gradient of the activation function'''
 
         return activation_function(x)(1-activation_function(x))
@@ -253,26 +259,33 @@ class SoftMaxNeuron(Neuron):
 class SquaredErrorNeuron(Neuron):
     '''create a neuron to compute the suarred error cost function'''
 
-    def __init__(self, name, parents = None, init_function = None):
+    def __init__(self, name, parents = [], init_function = None):
         '''initialize a squrred error neuron'''
 
-        Neuron.__init__(self, name, parents = None, init_function = None)
+        Neuron.__init__(self, name, parents, init_function)
 
         #fixed place for the cost neuron giving fixed weights: 
         #the first parent is the expected output of the network and the second is the calculated output
 
         self.w = np.array([-1,1])
 
-    def activation_function(x):
+    def activation_function(self, x):
         '''squarred error activation function'''
 
         return x**2
+
+    def gradient_activation_function(self, x):
+        return 1
 
 
     def get_gradient(self):
         '''return the derivative of the error in respect to the output'''
 
-        return self.x.T.dot(self.w)
+        g={}
+        for parent in self.parents:
+            g[parent.name] = self.x.T.dot(self.w)
+
+        return g
 
 
     def descend_gradient(self):
@@ -281,5 +294,5 @@ class SquaredErrorNeuron(Neuron):
 
 
 
-class CrossEntropyNeuron(Neuron):
+#class CrossEntropyNeuron(Neuron):
 
