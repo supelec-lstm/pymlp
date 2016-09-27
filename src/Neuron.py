@@ -10,12 +10,15 @@ class Neuron:
 
     def evaluate(self):
         """Return the output of the neuron as a double"""
+        pass
 
     def get_gradient(self):
         """Return the gradient of the neuron, based on its inputs and the associated weights"""
+        pass
 
     def descend_gradient(self,learning_rate,batch_size):
         """Updates the weights related to the neuron"""
+        pass
 
     def add_child(self, enfant):
         """Add a child to the neuron"""

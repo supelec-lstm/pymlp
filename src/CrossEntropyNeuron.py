@@ -1,0 +1,2 @@
+class CrossEntropyNeuron(Neuron):
+
