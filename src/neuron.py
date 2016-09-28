@@ -186,10 +186,10 @@ class TanhNeuron(Neuron):
 
 class ReluNeuron(Neuron):
     def activation_function(self):
-        return np.maximum(0, self.x)
+        return np.maximum(0, np.dot(self.w, self.x))
 
     def gradient_activation_function(self):
-        return (self.x >= 0).astype(float)
+        return (self.y > 0).astype(float)
 
 class SoftmaxNeuron(Neuron):
     def __init__(self, name, parents, i_parent):
