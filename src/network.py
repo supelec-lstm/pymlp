@@ -18,6 +18,7 @@ class Network:
 			:return: The output of the network.
 			:rtype: np.array
 		"""
+		self.reset_memoization()
 		for i, neuron in enumerate(self.inputs):
 			neuron.set_value(x[i])
 		y = np.zeros(len(self.outputs))
@@ -68,12 +69,13 @@ class Network:
 			:type Y: np.array
 			:type learning_rate: float
 		"""
+		total_cost = 0
 		self.reset_accumulators()
 		for x, y in zip(X, Y):
-			self.reset_memoization()
 			self.propagate(x)
-			print(self.back_propagate(y))
-		self.apply_gradient_descent(learning_rate, X.shape[0])
+			total_cost += self.back_propagate(y)
+		print(total_cost / X.shape[0])
+		self.descend_gradient(learning_rate, X.shape[0])
 
 	def stochastic_gradient_descent(self, X, Y, learning_rate):
 		"""
@@ -90,10 +92,9 @@ class Network:
 		"""
 		for x, y in zip(X, Y):
 			self.reset_accumulators()
-			self.reset_memoization()
 			self.propagate(x)
 			print(self.back_propagate(y))
-			self.apply_gradient_descent(learning_rate)
+			self.descend_gradient(learning_rate)
 
 	def reset_memoization(self):
 		""" Reset memoization of all the neurons. """
@@ -103,4 +104,4 @@ class Network:
 	def reset_accumulators(self):
 		""" Reset accumulators of all the neurons. """
 		for neuron in self.neurons:
-			neuron.reset_accumulators()
+			neuron.reset_accumulator()
