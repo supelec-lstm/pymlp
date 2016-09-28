@@ -58,7 +58,7 @@ class Neuron:
             for i, parent in enumerate(self.parents):
                 self.dJdx[parent.name] = dJdh*self.w[i]              
 
-
+ 
             self.acc_dJdw += dJdh*self.x    #le x sera t il la?? => il faut evaluer avant d'entrainer
         
         return self.dJdx
@@ -97,12 +97,12 @@ class Neuron:
 
     def activation_function(self, t):
         
-        return None
+        raise NotImplementedError
 
 
     def gradient_activation_function(self, v):
 
-        return None
+        raise NotImplementedError
 
 
 
@@ -241,31 +241,31 @@ class SoftMaxNeuron(Neuron):
     def activation_function(self, x):
         '''softmax activation function'''
 
-        pass
+        raise NotImplementedError
 
 
     def gradient_activation_function(self, x):
         '''gradient of the activation function'''
 
-        return activation_function(x)(1-activation_function(x))
+        raise NotImplementedError
 
 
 
 class SquaredErrorNeuron(Neuron):
-    '''create a neuron to compute the suarred error cost function'''
+    '''create a neuron to compute the squared error cost function'''
 
     def __init__(self, name, parents = [], init_function = None):
-        '''initialize a squrred error neuron'''
+        '''initialize a squarred error neuron'''
 
         Neuron.__init__(self, name, parents, init_function)
 
-        #fixed place for the cost neuron giving fixed weights: 
+        #fixed lace for the cost neuron giving fixed weights: 
         #the first parent is the expected output of the network and the second is the calculated output
 
         self.w = np.array([-1,1])
 
     def activation_function(self, x):
-        '''squarred error activation function'''
+        '''squared error activation function'''
 
         return x**2
 
@@ -284,10 +284,45 @@ class SquaredErrorNeuron(Neuron):
 
 
     def descend_gradient(self, learning_rate, batch_size):
+        '''do nothing since the cost neuron don't have adjusting weights'''
         
-        self.w=self.w
+        pass
 
 
 
-#class CrossEntropyNeuron(Neuron):
+class CrossEntropyNeuron(Neuron):
+    '''create a neuron to compute the cross entropy cost function'''
 
+    def __init__(self, name, parents = [], init_function = None):
+        '''initialize a cross entropy error neuron'''
+
+        Neuron.__init__(self, name, parents, init_function)
+
+        #fixed place for the cost neuron giving fixed weights: 
+        #the first parent is the expected output of the network and the second is the calculated output
+
+        self.w = np.array([-1,1])
+
+    def activation_function(self, x):
+        '''cross entropy activation function'''
+
+        raise NotImplementedError
+
+    def gradient_activation_function(self, x):
+        raise NotImplementedError
+
+
+    def get_gradient(self):
+        '''return the derivative of the error in respect to the output'''
+
+        g={}
+        for parent in self.parents:
+            g[parent.name] = self.x.T.dot(self.w)
+
+        return g
+
+
+    def descend_gradient(self, learning_rate, batch_size):
+        '''do nothing since the cost neuron don't have adjusting weights'''
+        
+        pass
