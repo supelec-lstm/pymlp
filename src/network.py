@@ -57,7 +57,7 @@ class Network:
         for x, y in zip(X, Y):
             self.back_propagate(x, y)
 
-        self.descend_gradient(learning_rate, batch_size = len(X))
+        self.descend_gradient(learning_rate, len(X))
 
 
     def stochastic_gradient_descent(self, X, Y, learning_rate = 0.3):   #added learning rate argument
@@ -65,7 +65,7 @@ class Network:
 
         for x, y in zip(X, Y):
             self.back_propagate(x, y)
-            self.descend_gradient(learning_rate, len(X))        
+            self.descend_gradient(learning_rate, 1)        
 
 
     def reset_memoization(self):

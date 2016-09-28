@@ -45,11 +45,8 @@ class Neuron:
     def get_gradient(self):
         '''return the gradient of the error in respect to the input, memorize it in dJdx 
         and add the gradient in respect to te weight to the accumulator'''
-
         if not self.dJdx:
-
             dJdh = 0
-
             for child in self.children:
                 g = child.get_gradient()
                 dJdh += g[self.name]
@@ -61,7 +58,7 @@ class Neuron:
             for i, parent in enumerate(self.parents):
                 self.dJdx[parent.name] = dJdh*self.w[i]              
 
-            print(dJdx)
+
             self.acc_dJdw += dJdh*self.x    #le x sera t il la?? => il faut evaluer avant d'entrainer
         
         return self.dJdx
@@ -70,7 +67,7 @@ class Neuron:
     def descend_gradient(self, learning_rate, batch_size):
 
         '''apply changes to the weights'''
-        print(self.acc_dJdw)
+
         self.w -= learning_rate/batch_size*self.acc_dJdw
         self.reset_accumulator()
 
@@ -88,7 +85,7 @@ class Neuron:
 
         self.x = None
         self.y = None
-        self.dJdw = {}
+        self.dJdx = {}
 
 
     def reset_accumulator(self):
@@ -131,9 +128,9 @@ class InputNeuron(Neuron):
         self.value = value
 
     def get_gradient(self):
-
-        for parent in self.parents:
-            parent.get_gradient()
+        discharge = []
+        for child in self.children:
+            discharge.append(child.get_gradient())
 
 
     def activation_function(self, x):
@@ -142,7 +139,7 @@ class InputNeuron(Neuron):
         return self.value
 
     def evaluate(self):
-        self.x=self.value
+        self.x = self.value
         return self.value
 
 
