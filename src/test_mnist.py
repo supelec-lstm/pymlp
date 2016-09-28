@@ -12,8 +12,8 @@ for i in range(784):
     inputs.append(InputNeuron(name = name))
 
 
-n = 5
-m = 5
+n = 1
+m = 1
 neurons = []
 for i in range(n):
     name = 'hidden_0_'
@@ -43,5 +43,18 @@ training_set = get_training_set()
 
 Y_train = [[y] for y in training_set[2].tolist()]
 
-network.stochastic_gradient_descent(training_set[0], Y_train, learning_rate = 0.08)
 
+test_set = get_test_set()
+
+print(test_set)
+
+print(type(test_set[0][0]))
+X_test = [x.tolist() for x in test_set[0]]
+print(X_test[0])
+
+network.batch_gradient_descent(training_set[0][:100], Y_train[:100], learning_rate = 0.4)
+
+
+err = 0
+
+print([(network.propagate(X_test[i])[0], test_set[2][i]) for i in range(len(X_test))])

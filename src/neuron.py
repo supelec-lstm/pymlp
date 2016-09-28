@@ -255,7 +255,7 @@ class SoftMaxNeuron(Neuron):
 class SquaredErrorNeuron(Neuron):
     '''create a neuron to compute the squared error cost function'''
 
-    def __init__(self, name, parents = [], init_function = None):
+    def __init__(self, name, parents = [], init_function = None, outputs_number = 1):
         '''initialize a squarred error neuron'''
 
         Neuron.__init__(self, name, parents, init_function)
@@ -263,12 +263,13 @@ class SquaredErrorNeuron(Neuron):
         #fixed lace for the cost neuron giving fixed weights: 
         #the first parent is the expected output of the network and the second is the calculated output
 
-        self.w = np.array([-1,1])
+        self.w = np.array([-1]*outputs_number+[1]*outputs_number)
+
 
     def activation_function(self, x):
         '''squared error activation function'''
 
-        return x**2
+        return x**2    #normalize in regard of the number of inputs to the network??
 
     def gradient_activation_function(self, x):
         return 1
