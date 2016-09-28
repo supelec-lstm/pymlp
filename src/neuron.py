@@ -69,9 +69,17 @@ class Neuron:
         
     def descent_gradient(self,learning_rate,batch_size):
         """met à jour les poids"""
-        for w in self.w:
-            w=w-(learning_rate/batch_size)*self.acc_dJdw
-        
+        #print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')
+#        print (self.w)
+#        print(self.acc_dJdw)
+#        for w in self.w:
+#            print('w',w)
+#            print((learning_rate/batch_size)*self.acc_dJdw)
+#            w=w-(learning_rate/batch_size)*self.acc_dJdw
+#        print('to',self.w)
+        #print(self.w)
+        self.w=self.w-(learning_rate/batch_size)*self.acc_dJdw
+        #print(self.w)
         
         
         

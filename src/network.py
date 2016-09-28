@@ -132,7 +132,9 @@ class Network:
         self.batch_gradient_descent(learning_rate, Xbatch, Ybatch)
         
 
-#test
+"""
+Test avec XOR
+"""
 i1=InputNeuron('i1',0)
 i2=InputNeuron('i2',0)
 h1=SigmoidNeuron('h1',[i1,i2])
@@ -146,16 +148,41 @@ network=Network([h1,h2,h3],[i1,i2],[o],expected_output,cost)
 X=[np.array([[0],[0]]),np.array([[0],[1]]),np.array([[1],[0]]),np.array([[1],[1]])]
 Y=[np.array([[0]]),np.array([[1]]),np.array([[1]]),np.array([[0]])]
 
-for compt in range(0,10):
-    print("")
+for compt in range(0,10000):
+    if compt%1000==0:
+        print("")
     for x,y in zip(X,Y):
         for i in range(0,len(y)):
             network.expected_outputs[i,0]=y[i,0]
-        print('attendu',y)
         network.propagate(x)
-        print(network.outputs[0].y)
-    network.batch_gradient_descent(1,X,Y)
-    print('w',h1.w)
+        if compt%1000==0:
+            print('attendu',y)
+            print(network.outputs[0].y)
+    network.batch_gradient_descent(10,X,Y)
+    #print('w',h1.w)
+    
+    
+"""
+début :
+attendu [[0]]
+0.616138361811
+attendu [[1]]
+0.594663669594
+attendu [[1]]
+0.52108155117
+attendu [[0]]
+0.496827944159
+
+fin :
+attendu [[0]]
+0.0436382748764
+attendu [[1]]
+0.933088881052
+attendu [[1]]
+0.943961840693
+attendu [[0]]
+0.0527242597738
+"""
 
 
             
