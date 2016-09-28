@@ -45,6 +45,7 @@ class Neuron:
     def get_gradient(self):
         '''return the gradient of the error in respect to the input, memorize it in dJdx 
         and add the gradient in respect to te weight to the accumulator'''
+        self.evaluate()
         if not self.dJdx:
             dJdh = 0
             for child in self.children:

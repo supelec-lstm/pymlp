@@ -4,7 +4,7 @@ from random import *
 
 
 input1, input2 , bias1= InputNeuron(name = 'input1'), InputNeuron(name = 'input2'), InputNeuron(name = 'bias1')
-hidden1, hidden2, bias2 = ReluNeuron(name = 'hidden1', parents = [input1, input2, bias1]), ReluNeuron(name = 'hidden2', parents = [input1, input2, bias1]), InputNeuron(name = 'bias2')
+hidden1, hidden2, bias2 = SigmoidNeuron(name = 'hidden1', parents = [input1, input2, bias1]), SigmoidNeuron(name = 'hidden2', parents = [input1, input2, bias1]), InputNeuron(name = 'bias2')
 output = SigmoidNeuron(name = 'output', parents = [hidden1, hidden2, bias2])
 expected_output = InputNeuron(name = 'expected_output')
 cost_n = SquaredErrorNeuron(name = 'cost', parents = [expected_output, output])
@@ -25,7 +25,7 @@ for i in range(100000):
 print(hidden1.w)
 print(output.w)
 
-network.stochastic_gradient_descent(X, Y, 0.8)
+network.stochastic_gradient_descent(X, Y, 0.5)
 
 print(hidden1.w)
 print(output.w)
