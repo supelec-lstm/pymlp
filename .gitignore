@@ -1,3 +1,4 @@
 *.autosave
 *.pyc
 *.pyo
+__pycache__
