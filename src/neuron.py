@@ -61,9 +61,7 @@ class Neuron:
         """
         if not self.y:
             # Retrieve the inputs
-            self.x = np.zeros(len(self.parents))
-            for i, parent in enumerate(self.parents):
-                self.x[i] = parent.evaluate()
+            self.x = np.array([parent.evaluate() for parent in self.parents])
             # Compute the output
             self.y = self.activation_function()
         return self.y
@@ -97,10 +95,7 @@ class Neuron:
         """
         if not self.dJdx:
             # Compute dJ/dy
-            dJdy = 0
-            for child in self.children:
-                gradient = child.get_gradient()
-                dJdy += gradient[self.name]
+            dJdy = np.sum(child.get_gradient()[self.name] for child in self.children)
             # Compute dJ/dh
             dJdh = dJdy * self.gradient_activation_function()
             # Compute dJ/dx
@@ -208,10 +203,7 @@ class SoftmaxNeuron(Neuron):
     def get_gradient(self):
         if not self.dJdx:
             # Compute dJ/dy
-            dJdy = 0
-            for child in self.children:
-                gradient = child.get_gradient()
-                dJdy += gradient[self.name]
+            dJdy = np.sum(child.get_gradient()[self.name] for child in self.children)
             # Compute dJ/dx
             self.dJdx = {}
             for i, parent in enumerate(self.parents):
@@ -254,14 +246,29 @@ class SquaredErrorNeuron(CostNeuron):
     def get_gradient(self):
         if not self.dJdx:
             # Compute dJ/dy
-            dJdy = 0
-            for child in self.children:
-                gradient = child.get_gradient()
-                dJdy += gradient[self.name]
+            dJdy = np.sum(child.get_gradient()[self.name] for child in self.children)
             # Compute dJ/dx
             self.dJdx = {}
             for i, parent in enumerate(self.outputs):
                 self.dJdx[parent.name] = 2 * (self.predicted_y[i]-self.expected_y[i])
+        return self.dJdx
+
+class BernoulliCostNeuron(CostNeuron):
+    def activation_function(self):
+        self.expected_class = self.x[0]
+        self.predicted_y = self.x[1]
+        return -(self.expected_class * np.log(self.predicted_y) + 
+            (1-self.expected_class) * np.log(1-self.predicted_y))
+
+    def get_gradient(self):
+        if not self.dJdx:
+            # Compute dJ/dy
+            dJdy = np.sum(child.get_gradient()[self.name] for child in self.children)
+            # Compute dJ/dx
+            self.dJdx = {}
+            parent = self.outputs[0]
+            self.dJdx[parent.name] = -(self.expected_class / self.predicted_y -
+                (1-self.expected_class) / (1-self.predicted_y))
         return self.dJdx
 
 class CrossEntropyNeuron(CostNeuron):
@@ -273,10 +280,7 @@ class CrossEntropyNeuron(CostNeuron):
     def get_gradient(self):
         if not self.dJdx:
             # Compute dJ/dy
-            dJdy = 0
-            for child in self.children:
-                gradient = child.get_gradient()
-                dJdy += gradient[self.name]
+            dJdy = np.sum(child.get_gradient()[self.name] for child in self.children)
             # Compute dJ/dx
             self.dJdx = {}
             for i, parent in enumerate(self.outputs):
