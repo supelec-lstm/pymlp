@@ -5,7 +5,12 @@ Created on Tue Sep 27 15:00:20 2016
 @author: Thaïs
 """
 
-import Neuron
+#import Neuron
+from neuron import *
+
+#import InputNeuron
+#import SigmoidNeuron
+#import LeastSquareNeuron
 import numpy as np
 import random
 
@@ -23,10 +28,6 @@ class Network:
             neuron.reset_memoization()
         for neuron in self.outputs:
             neuron.reset_memoization()
-        for neuron in self.inputs:
-            neuron.reset_memoization()
-        for neuron in self.expected_output:
-            neuron.reset_memoization()
         self.cost_neuron.reset_memoization()
         
     def reset_accumulators(self):
@@ -34,44 +35,37 @@ class Network:
             neuron.reset_accumulator()
         for neuron in self.outputs:
             neuron.reset_accumulator()
-        for neuron in self.inputs:
-            neuron.reset_accumulator()
-        for neuron in self.expected_output:
-            neuron.reset_accumulator()
         self.cost_neuron.reset_accumulator()
         
     def propagate(self,data_input):
         #data_input=vecteur d'entrée
         #rentre le vecteur dans les neurones d'entrée
-        if data_input.size>self.inputs.size:
+        if data_input.size>len(self.inputs):
             return 'Error'
         else:
             i=0
             while i<data_input.size:
-                self.inputs.set_value(data_input[i])
+                self.inputs[i].set_value(data_input[i])
                 i=i+1
-            while i<self.inputs.size:
-                self.inputs.set_value(0)
-                i=i+1
-                
+            while i<len(self.inputs):
+                self.inputs[i].set_value(0)
+                i=i+1      
         neuron=self.neurons.copy() #calul des neurones, il faut parents déjà calculés
         while len(neuron)>0:
             for neur in neuron:
                 test=True
                 i=0
-                while test and i<len(neuron.parents):  #verifier que children ont calculé leur gradient
-                    if neuron.parents[i].y==None:
+                while test and i<len(neur.parents):  #verifier que parents ont calculé leur gradient
+                    if neur.parents[i].y==None:
                         test=False
                     i=i+1
                 if test:
                     neur.evaluate()
                     neuron.remove(neur)    
-            
-        output=np.zeros([len(self.outputs),1])
-        for i in range(1,len(self.outputs)):
-            output[i,0]=self.outputs[i].evaluate()
-        self.cost_neuron.evaluate()  #ses parents sont les outputs
-        return output
+        for i in range(0,len(self.outputs)):
+            self.outputs[i].evaluate()
+        self.cost_neuron.evaluate(self.expected_outputs,self.outputs)#ses parents sont les outputs
+
         
     def back_propagate(self):
         """va propager l'erreur et calculer la correction à appliquer
@@ -84,8 +78,8 @@ class Network:
             for neur in neuron:
                 test=True
                 i=0
-                while test and i<len(neuron.children):  #verifier que children ont calculé leur gradient
-                    if neuron.children[i].dJdx==None:
+                while test and i<len(neur.children):  #verifier que children ont calculé leur gradient
+                    if neur.children[i].dJdx==None:
                         test=False
                     i=i+1
                 if test:
@@ -96,9 +90,9 @@ class Network:
     def descent_gradient(self, learning_rate, batch_size):
         """met à jour tous les poids"""
         for output in self.outputs:
-            output.descent_gradient()
+            output.descent_gradient(learning_rate, batch_size)
         for neuron in self.neurons:
-            neuron.descent_gradient()
+            neuron.descent_gradient(learning_rate, batch_size)
     
     def batch_gradient_descent(self, learning_rate, X, Y):
         self.reset_accumulators()
@@ -110,10 +104,10 @@ class Network:
             else:
                 i=0
                 while i<expected_output.size:
-                    self.expected_outputs[i].y=expected_output[i]
+                    self.expected_outputs[i,0]=expected_output[i,0]
                     i=i+1
                 while i<self.expected_outputs.size:
-                    self.expected_outputs.y=0
+                    self.expected_outputs[i,0].y=0
                     i=i+1
                     
             self.propagate(test_input)
@@ -136,5 +130,32 @@ class Network:
             Ycopy.pop(i)
             nb=nb-1
         self.batch_gradient_descent(learning_rate, Xbatch, Ybatch)
+        
+
+#test
+i1=InputNeuron('i1',0)
+i2=InputNeuron('i2',0)
+h1=SigmoidNeuron('h1',[i1,i2])
+h2=SigmoidNeuron('h2',[i1,i2])
+h3=SigmoidNeuron('h3',[i1,i2])
+o=SigmoidNeuron('o',[h1,h2,h3])
+cost=LeastSquareNeuron('cost',[o])
+expected_output=np.zeros([1,1])
+
+network=Network([h1,h2,h3],[i1,i2],[o],expected_output,cost)
+X=[np.array([[0],[0]]),np.array([[0],[1]]),np.array([[1],[0]]),np.array([[1],[1]])]
+Y=[np.array([[0]]),np.array([[1]]),np.array([[1]]),np.array([[0]])]
+
+for compt in range(0,10):
+    print("")
+    for x,y in zip(X,Y):
+        for i in range(0,len(y)):
+            network.expected_outputs[i,0]=y[i,0]
+        print('attendu',y)
+        network.propagate(x)
+        print(network.outputs[0].y)
+    network.batch_gradient_descent(1,X,Y)
+    print('w',h1.w)
+
 
             
