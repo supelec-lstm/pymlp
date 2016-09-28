@@ -148,40 +148,40 @@ network=Network([h1,h2,h3],[i1,i2],[o],expected_output,cost)
 X=[np.array([[0],[0]]),np.array([[0],[1]]),np.array([[1],[0]]),np.array([[1],[1]])]
 Y=[np.array([[0]]),np.array([[1]]),np.array([[1]]),np.array([[0]])]
 
-for compt in range(0,10000):
-    if compt%1000==0:
+for compt in range(0,100000):
+    if compt%10000==0:
         print("")
     for x,y in zip(X,Y):
         for i in range(0,len(y)):
             network.expected_outputs[i,0]=y[i,0]
         network.propagate(x)
-        if compt%1000==0:
+        if compt%10000==0:
             print('attendu',y)
             print(network.outputs[0].y)
-    network.batch_gradient_descent(10,X,Y)
+    network.batch_gradient_descent(1,X,Y)
     #print('w',h1.w)
     
     
 """
 début :
 attendu [[0]]
-0.616138361811
+0.781081502232
 attendu [[1]]
-0.594663669594
+0.818883446522
 attendu [[1]]
-0.52108155117
+0.790651229024
 attendu [[0]]
-0.496827944159
+0.810529615909
 
 fin :
 attendu [[0]]
-0.0436382748764
+0.0320746907204
 attendu [[1]]
-0.933088881052
+0.980235799406
 attendu [[1]]
-0.943961840693
+0.980208927052
 attendu [[0]]
-0.0527242597738
+0.00762835507233
 """
 
 
