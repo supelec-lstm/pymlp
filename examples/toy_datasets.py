@@ -19,6 +19,13 @@ def and_dataset(length):
 def xor_dataset(length):
 	return boolean_function_dataset(length, lambda x: (x[0] and not x[1]) or (not x[0] and x[1]))
 
+def noised_xor_dataset(length):
+	X = np.random.randint(0, 2, (length, 2))
+	Y = np.array([(x[0] and not x[1]) or (not x[0] and x[1]) for x in X])
+	X = np.array([x + np.random.normal(0, 0.1, 2) for x in X])
+	return X, Y
+
+
 def plane_dataset(length, normal_vector=[1, -1]):
 	return unit_square_function_dataset(length, lambda x: (np.dot(x, normal_vector) >= 0))
 
