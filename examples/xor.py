@@ -10,7 +10,7 @@ from neuron import *
 from toy_datasets import *
 
 def init_function(n):
-	return np.random.rand(n) * 0.2 - 0.1
+	return np.random.rand(n) * 1 - 0.5
 
 def evaluate(network):
 	print('(0, 0) -> ' + str(network.propagate(np.array([0, 0]))))
@@ -35,7 +35,7 @@ def visualize(network, n):
 	plt.colorbar()
 	plt.show()
 
-if __name__ == '__main__':
+def simple_network():
 	input_bias = BiasNeuron('b1')
 	input_neuron1 = InputNeuron('x1')
 	input_neuron2 = InputNeuron('x2')
@@ -52,12 +52,38 @@ if __name__ == '__main__':
 	cost_neuron = BernoulliCostNeuron('cost', [expected_output], [output_neuron])
 
 	neurons = input_layer + hidden_layer + [output_neuron, expected_output, cost_neuron]
-	network = Network(neurons, inputs, [output_neuron], [expected_output], cost_neuron)
+	return Network(neurons, inputs, [output_neuron], [expected_output], cost_neuron)
+
+def fully_connected_network(layers):
+	input_bias = BiasNeuron('b1')
+	input_neuron1 = InputNeuron('x1')
+	input_neuron2 = InputNeuron('x2')
+	input_layer = [input_bias, input_neuron1, input_neuron2]
+	inputs = [input_neuron1, input_neuron2]
+
+	neurons = [] + input_layer
+	parent_layer = input_layer
+	for i, size in enumerate(layers):
+		cur_layer = [BiasNeuron('b{}'.format(i))]
+		for j in range(size):
+			cur_layer.append(ReluNeuron('relu-{}-{}'.format(i, j), parent_layer, init_function))
+		parent_layer = cur_layer
+		neurons += cur_layer
+
+	output_neuron = SigmoidNeuron('y',  parent_layer, init_function) 
+	expected_output = InputNeuron('expected_y')
+	cost_neuron = BernoulliCostNeuron('cost', [expected_output], [output_neuron])
+
+	neurons += [output_neuron, expected_output, cost_neuron]
+	return Network(neurons, inputs, [output_neuron], [expected_output], cost_neuron)
+
+if __name__ == '__main__':
+	network = fully_connected_network([4, 4])
 
 	X, Y = xor_dataset(100)
 	Y = Y.reshape((len(Y), 1))
 	for _ in range(1000):
-		#network.stochastic_gradient_descent(X, Y, 0.001)
+		#network.stochastic_gradient_descent(X, Y, 0.000001)
 		network.batch_gradient_descent(X, Y, 0.3)
 	evaluate(network)
 	visualize(network, 100)
