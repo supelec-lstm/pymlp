@@ -179,7 +179,7 @@ class SigmoidNeuron(Neuron):
 
 class TanhNeuron(Neuron):
     def activation_function(self):
-        return np.tanh(self.x)
+        return np.tanh(np.dot(self.w, self.x))
 
     def gradient_activation_function(self):
         return 1 - self.y * self.y
