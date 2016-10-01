@@ -13,6 +13,7 @@ from neuron import *
 #import LeastSquareNeuron
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 
 class Network:
     
@@ -93,7 +94,8 @@ class Network:
             output.descent_gradient(learning_rate, batch_size)
         for neuron in self.neurons:
             neuron.descent_gradient(learning_rate, batch_size)
-    
+        #pas pour le cost
+            
     def batch_gradient_descent(self, learning_rate, X, Y):
         self.reset_accumulators()
         self.reset_memoization()
@@ -148,20 +150,54 @@ network=Network([h1,h2,h3],[i1,i2],[o],expected_output,cost)
 X=[np.array([[0],[0]]),np.array([[0],[1]]),np.array([[1],[0]]),np.array([[1],[1]])]
 Y=[np.array([[0]]),np.array([[1]]),np.array([[1]]),np.array([[0]])]
 
-for compt in range(0,100000):
-    if compt%10000==0:
+time=[]
+error=[]
+
+#test sur un training input
+#x=X[1]
+#y=Y[1]
+#network.expected_outputs[0,0]=y
+#print('expected',y)
+#network.propagate(x)
+#print('output',o.y)
+#print('ow',o.w)
+#print('cost',cost.y)
+#network.batch_gradient_descent(0.5,[x],[y])
+#print('odJdx',o.dJdx)
+#print('hy',h1.y,h2.y,h3.y)
+#print('odJdw',o.acc_dJdw)
+#print('ow2',o.w)
+#network.propagate(x)
+#print(o.y)
+#print('cost2',cost.y)
+
+
+
+for compt in range(0,10000):
+    err=0
+    if compt%1000==0:
         print("")
+        print(compt)
     for x,y in zip(X,Y):
         for i in range(0,len(y)):
             network.expected_outputs[i,0]=y[i,0]
         network.propagate(x)
-        if compt%10000==0:
+        err=err+cost.evaluate(network.expected_outputs,network.outputs)
+        if compt%1000==0:
             print('attendu',y)
             print(network.outputs[0].y)
-    network.batch_gradient_descent(1,X,Y)
+    time.append(compt)
+    error.append(err/len(X))
+    network.batch_gradient_descent(0.8,X,Y)
     #print('w',h1.w)
     
-    
+plt.plot(time,error)
+plt.title('cost function (10 000 epochs, eta=0.8)')
+plt.xlabel('epochs')
+plt.ylabel('average costfunction')
+plt.show()
+   
+   
 """
 début :
 attendu [[0]]

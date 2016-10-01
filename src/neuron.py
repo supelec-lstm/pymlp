@@ -34,15 +34,17 @@ class Neuron:
     def calculate_gradient(self):
         """calcule le gradient et accumule"""
         net=np.dot(np.transpose(self.w),self.x)
-        child=self.children[0]
-        #trouver le poids entre child et self
-        test=True
-        indice=-1 #indice de self dans parents de child
-        while test:
-            indice=indice+1
-            if child.parents[indice]==self:
-                test=False
-        self.dJdx=child.get_gradient()*child.w[indice,0]*self.gradient_activation_function(net)
+        self.dJdx=0
+        for child in self.children:
+            
+            #trouver le poids entre child et self
+            test=True
+            indice=-1 #indice de self dans parents de child
+            while test:
+                indice=indice+1
+                if child.parents[indice]==self:
+                    test=False
+            self.dJdx=self.dJdx+child.get_gradient()*child.w[indice,0]*self.gradient_activation_function(net)
         self.acc_dJdw=self.acc_dJdw+self.dJdx*self.x
         
     def get_gradient(self):
@@ -93,6 +95,7 @@ class InputNeuron(Neuron):
         
     def set_value(self,value):
         self.value=value
+        self.y=value
         
     def activation_function(self):
         return self.value
@@ -150,6 +153,18 @@ class SoftmaxNeuron(Neuron):
     
 class LeastSquareNeuron(Neuron):
     """va servir pour le cost_neuron"""
+    def __init__(self, name, parents):
+        self.name=name
+        self.parents=parents
+        self.w=np.ones([len(parents),1])#poids à 1, il faut pour la backprop
+        self.x=np.zeros([len(parents),1])  #on les met à 0 pour l'instant
+        self.y=None  #sortie pas encore calculée
+        self.children=None #liste des enfants
+        self.dJdx=None  #gradient de fct cout par parents, mémoization
+        self.acc_dJdw=np.zeros(self.w.shape)  #accumulation pour batch vecteur pour tous les poids
+        #on va prevenir les parents
+        for neuron in parents:
+            neuron.add_child(self)
     def activation_function(self,expected_output,outputs):  #listes en paramètres
         outputvect=np.zeros([len(outputs),1])
         for i in range(0,len(outputs)):
@@ -181,6 +196,7 @@ class LeastSquareNeuron(Neuron):
         return self.y
         
 class CrossEntropyNeuron(Neuron):
+    """pas fonctionnel"""
     def crossEntropy(expected_output,output):
         return expected_output*np.log(output)+(1-expected_output)*np.log(1-output)
     def gradient_activation_function(expected_output,output):
