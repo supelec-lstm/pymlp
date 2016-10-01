@@ -8,9 +8,6 @@ Created on Tue Sep 27 15:00:20 2016
 #import Neuron
 from neuron import *
 
-#import InputNeuron
-#import SigmoidNeuron
-#import LeastSquareNeuron
 import numpy as np
 import random
 import matplotlib.pyplot as plt
@@ -18,6 +15,8 @@ import matplotlib.pyplot as plt
 class Network:
     
     def __init__(self, neurons, inputs, outputs, expected_outputs, cost_neuron):
+        """A network is defined by a list of input neurons, a list of outputs, a list of
+        hidden neurons and a cost neuron at the end"""   
         self.neurons=neurons
         self.inputs=inputs
         self.outputs=outputs
@@ -25,6 +24,7 @@ class Network:
         self.cost_neuron=cost_neuron
         
     def reset_memoization(self):
+        """reset the variable used for the memoization in each neuron"""
         for neuron in self.neurons:
             neuron.reset_memoization()
         for neuron in self.outputs:
@@ -39,8 +39,8 @@ class Network:
         self.cost_neuron.reset_accumulator()
         
     def propagate(self,data_input):
-        #data_input=vecteur d'entrée
-        #rentre le vecteur dans les neurones d'entrée
+        #data_input=the input vector
+        #put the input in the inputs neurons
         if data_input.size>len(self.inputs):
             return 'Error'
         else:
@@ -50,13 +50,14 @@ class Network:
                 i=i+1
             while i<len(self.inputs):
                 self.inputs[i].set_value(0)
-                i=i+1      
-        neuron=self.neurons.copy() #calul des neurones, il faut parents déjà calculés
+                i=i+1
+                
+        neuron=self.neurons.copy() #calulate the output of each neuron, but the parents have to be evaluated
         while len(neuron)>0:
             for neur in neuron:
                 test=True
                 i=0
-                while test and i<len(neur.parents):  #verifier que parents ont calculé leur gradient
+                while test and i<len(neur.parents):  #check if the parents are already evaluated
                     if neur.parents[i].y==None:
                         test=False
                     i=i+1
@@ -65,12 +66,11 @@ class Network:
                     neuron.remove(neur)    
         for i in range(0,len(self.outputs)):
             self.outputs[i].evaluate()
-        self.cost_neuron.evaluate(self.expected_outputs,self.outputs)#ses parents sont les outputs
+        self.cost_neuron.evaluate(self.expected_outputs,self.outputs)#its parents are the outputs neurons ent the expected outputs
 
         
     def back_propagate(self):
-        """va propager l'erreur et calculer la correction à appliquer
-        sur chaque poids"""
+        """propagate the error and calculate the correction to apply on each weight"""
         self.cost_neuron.calculate_gradient(self.expected_outputs,self.outputs)
         for output in self.outputs:
             output.calculate_gradient()
@@ -79,7 +79,7 @@ class Network:
             for neur in neuron:
                 test=True
                 i=0
-                while test and i<len(neur.children):  #verifier que children ont calculé leur gradient
+                while test and i<len(neur.children):  #check if the children have already calculated their gradient
                     if neur.children[i].dJdx==None:
                         test=False
                     i=i+1
@@ -89,7 +89,7 @@ class Network:
                     
     
     def descent_gradient(self, learning_rate, batch_size):
-        """met à jour tous les poids"""
+        """update all the weights"""
         for output in self.outputs:
             output.descent_gradient(learning_rate, batch_size)
         for neuron in self.neurons:
@@ -101,7 +101,7 @@ class Network:
         self.reset_memoization()
         for test_input, expected_output in zip(X,Y):
             
-            if expected_output.size>self.expected_outputs.size: #mise des expected outputs
+            if expected_output.size>self.expected_outputs.size: #update the vector of expected outputs
                 return 'Error'
             else:
                 i=0
@@ -118,7 +118,7 @@ class Network:
         self.descent_gradient(learning_rate, len(X))
     
     def stochastic_gradient_descent(self, batch_size, learning_rate, X, Y):
-        """choisir un batch au hasard de la taille voulue et on applique la descente du gradient"""
+        """choose randomly a batch with the wanted size, and apply the gradient descent to this batch"""
         Xbatch=[]
         Ybatch=[]
         Xcopy=X.copy()
@@ -135,7 +135,7 @@ class Network:
         
 
 """
-Test avec XOR
+Test with XOR
 """
 i1=InputNeuron('i1',0)
 i2=InputNeuron('i2',0)
@@ -153,7 +153,7 @@ Y=[np.array([[0]]),np.array([[1]]),np.array([[1]]),np.array([[0]])]
 time=[]
 error=[]
 
-#test sur un training input
+#test on only one training input
 #x=X[1]
 #y=Y[1]
 #network.expected_outputs[0,0]=y
@@ -184,12 +184,12 @@ for compt in range(0,10000):
         network.propagate(x)
         err=err+cost.evaluate(network.expected_outputs,network.outputs)
         if compt%1000==0:
-            print('attendu',y)
+            print('expected',y)
             print(network.outputs[0].y)
     time.append(compt)
     error.append(err/len(X))
     network.batch_gradient_descent(0.8,X,Y)
-    #print('w',h1.w)
+    
     
 plt.plot(time,error)
 plt.title('cost function (10 000 epochs, eta=0.8)')
@@ -199,24 +199,24 @@ plt.show()
    
    
 """
-début :
-attendu [[0]]
+start :
+expected [[0]]
 0.781081502232
-attendu [[1]]
+expected [[1]]
 0.818883446522
-attendu [[1]]
+expected [[1]]
 0.790651229024
-attendu [[0]]
+expected [[0]]
 0.810529615909
 
-fin :
-attendu [[0]]
+end :
+expected [[0]]
 0.0320746907204
-attendu [[1]]
+expected [[1]]
 0.980235799406
-attendu [[1]]
+expected [[1]]
 0.980208927052
-attendu [[0]]
+expected [[0]]
 0.00762835507233
 """
 

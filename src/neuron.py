@@ -10,21 +10,25 @@ import numpy as np
 class Neuron:
     
     def __init__(self, name, parents):
+        """A neuron is defined by a name, a list of parents,
+        the weights corresponding to each parent, the inputs,
+        the output
+        """
         self.name=name
         self.parents=parents
-        self.w=np.random.randn(len(parents),1)#poids avec parents générés aléatoirement
-        self.x=np.zeros([len(parents),1])  #on les met à 0 pour l'instant
-        self.y=None  #sortie pas encore calculée
-        self.children=[]  #liste des enfants
-        self.dJdx=None  #gradient de fct cout par parents, mémoization
-        self.acc_dJdw=np.zeros(self.w.shape)  #accumulation pour batch vecteur pour tous les poids
-        #on va prevenir les parents
+        self.w=np.random.randn(len(parents),1)#weights randomly initialized
+        self.x=np.zeros([len(parents),1])  #initialized to 0 but it will change with each training input
+        self.y=None  #output unknown for th moment
+        self.children=[]  #the children list
+        self.dJdx=None  #the cost function gradient (with respect to input), used for memoization
+        self.acc_dJdw=np.zeros(self.w.shape)  #used to accumulate each correction for the weights, when we use a batch in training set
+        #update the parents' list of children
         for neuron in parents:
             neuron.add_child(self)
         
         
     def evaluate(self):
-        #réévaluer les entrées
+        #evaluate inputs
         for i in range(0,len(self.parents)):
             self.x[i,0]=self.parents[i].evaluate()
         self.y=self.activation_function(np.dot(self.w.T,self.x)[0,0])
@@ -32,14 +36,14 @@ class Neuron:
 
         
     def calculate_gradient(self):
-        """calcule le gradient et accumule"""
+        """calculate the gradient and accumulate"""
         net=np.dot(np.transpose(self.w),self.x)
         self.dJdx=0
         for child in self.children:
             
-            #trouver le poids entre child et self
+            #find the weight between self and child
             test=True
-            indice=-1 #indice de self dans parents de child
+            indice=-1 #index of self in the child's parents list
             while test:
                 indice=indice+1
                 if child.parents[indice]==self:
@@ -48,8 +52,7 @@ class Neuron:
         self.acc_dJdw=self.acc_dJdw+self.dJdx*self.x
         
     def get_gradient(self):
-        return self.dJdx
-        
+        return self.dJdx        
 
     def add_child(self,neuron):
         self.children.append(neuron)
@@ -70,28 +73,19 @@ class Neuron:
         raise NotImplementedError
         
     def descent_gradient(self,learning_rate,batch_size):
-        """met à jour les poids"""
-        #print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')
-#        print (self.w)
-#        print(self.acc_dJdw)
-#        for w in self.w:
-#            print('w',w)
-#            print((learning_rate/batch_size)*self.acc_dJdw)
-#            w=w-(learning_rate/batch_size)*self.acc_dJdw
-#        print('to',self.w)
-        #print(self.w)
+        """update the weights"""
         self.w=self.w-(learning_rate/batch_size)*self.acc_dJdw
-        #print(self.w)
+
         
         
         
 class InputNeuron(Neuron):
-    """hérite de la classe Neuron"""
+    """inherit the Neuron class"""
     def __init__(self, name, value):
         self.value=value
         self.name=name
-        self.y=value  #sortie pas encore calculée
-        self.children=[]  #liste des enfants
+        self.y=value  
+        self.children=[] 
         
     def set_value(self,value):
         self.value=value
@@ -108,8 +102,9 @@ class InputNeuron(Neuron):
         
         
 class LinearNeuron(Neuron):
-    """garde le meme constructeur que neuron
-    on définit les fct de maniere generale et on les applique dans evaluate"""
+    """same constructor as Neuron
+    we define the activation function for each type of neuron
+    we applicate the function in evaluate"""
     def activation_function(x):
         return x
     def gradient_activation_function(self,x):
@@ -152,20 +147,20 @@ class SoftmaxNeuron(Neuron):
         return grad
     
 class LeastSquareNeuron(Neuron):
-    """va servir pour le cost_neuron"""
+    """used for the cost neuron"""
     def __init__(self, name, parents):
         self.name=name
         self.parents=parents
-        self.w=np.ones([len(parents),1])#poids à 1, il faut pour la backprop
-        self.x=np.zeros([len(parents),1])  #on les met à 0 pour l'instant
-        self.y=None  #sortie pas encore calculée
-        self.children=None #liste des enfants
-        self.dJdx=None  #gradient de fct cout par parents, mémoization
-        self.acc_dJdw=np.zeros(self.w.shape)  #accumulation pour batch vecteur pour tous les poids
-        #on va prevenir les parents
+        self.w=np.ones([len(parents),1])#put to 1 for the backpropagation
+        self.x=np.zeros([len(parents),1])  
+        self.y=None  
+        self.children=None 
+        self.dJdx=None 
+        self.acc_dJdw=np.zeros(self.w.shape)
         for neuron in parents:
             neuron.add_child(self)
-    def activation_function(self,expected_output,outputs):  #listes en paramètres
+            
+    def activation_function(self,expected_output,outputs):  
         outputvect=np.zeros([len(outputs),1])
         for i in range(0,len(outputs)):
             outputvect[i,0]=outputs[i].y
@@ -176,27 +171,16 @@ class LeastSquareNeuron(Neuron):
             outputvect[i,0]=output[i].y
         return outputvect-expected_output
     def calculate_gradient(self,expected_output,output):
-        """calcule le gradient et accumule"""
-#        if len(self.children)==0:
-#            return
-#        child=self.children[0]
-#        #trouver le poids entre child et self
-#        test=True
-#        indice=0 #indice de self dans parents de child
-#        while test:
-#            if child.parents[indice]==self:
-#                test=False
-#            indice=indice+1
-#        self.dJdx=child.get_gradient()*child.w[indice,0]*self.gradient_activation_function(expected_output,output)
-#        self.acc_dJdw=self.acc_dJdw+self.dJdx*self.x
+        """gradient for the cost neuron"""
         self.dJdx=self.gradient_activation_function(expected_output, output)
         
-    def evaluate(self, expected_outputs, outputs):  #outputs liste
+    def evaluate(self, expected_outputs, outputs):
+        """evaluate the cost function by using the outputs and the expected outputs"""
         self.y=self.activation_function(expected_outputs, outputs)
         return self.y
         
 class CrossEntropyNeuron(Neuron):
-    """pas fonctionnel"""
+    """not finished yet"""
     def crossEntropy(expected_output,output):
         return expected_output*np.log(output)+(1-expected_output)*np.log(1-output)
     def gradient_activation_function(expected_output,output):
