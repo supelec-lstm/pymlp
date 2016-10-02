@@ -7,20 +7,24 @@ class Neuron:
         self.name = name
         self.parents = parents
         self.w = {}
-        self.acc_dJdw = {}
+        self.acc_dJdw = 0
         self.init_function = init_function
-        for poids in range(len(parents)):
-            self.w[self.parents.name]= init_function()
-            self.acc_dJdw[self.parents.name] = 0
-        self.children, self.x, self.y, self.dJdx = None
-        self.x = np.empty(len(parents))
+        for parent in self.parents:
+            self.w[parent.name]= init_function(1)
+            parent.add_child(self)
+        self.children, self.x, self.y, self.dJdx = [],{},{},{}
 
     def evaluate(self):
         """Return the output of the neuron as a double"""
-        if(self.x is None):
+        if self.x == {}:
             for neuron in self.parents:
-                self.x[neuron.name] = neuron.evaluate(self)
-        self.y = self.activation_function(np.dot(self.x,self.w))
+                self.x[neuron.name] = neuron.evaluate()
+        if self.x is not None:
+            argument = sum(self.x[k]*self.w[k] for k in self.x)
+            self.y = self.activation_function(argument)
+
+        else :
+            self.y = self.activation_function(0)
         return self.y
 
 
@@ -29,23 +33,24 @@ class Neuron:
         dJdy = 0
         for child in self.children:
             dJdy += child.get_gradient()[self.name]
-        dJdy *= self.gradient_activation_function(np.dot(self.x,self.w))
+        dJdy *= self.gradient_activation_function(sum(self.x[k]*self.w[k] for k in list(self.x.keys())))
         dhdx = self.w.copy()
         dhdw = self.x.copy()
 
         dhdx.update((x, y*dJdy) for x, y in dhdx.items() )
         dhdw.update((x, y*dJdy) for x, y in dhdw.items() )
 
-        for child in self.children:
-            self.acc_dJdw[child.name] += dhdw.get(child.name)
+        self.acc_dJdw += dhdw.get(self.name)
 
     def descend_gradient(self,learning_rate,batch_size):
         """Updates the weights related to the neuron"""
-        self.w = self.w - learning_rate*self.acc_dJdw/batch_size
+        """self.w = self.w - learning_rate*self.acc_dJdw/batch_size"""
+        self.w.update((x,w-learning_rate*self.acc_dJdw/batch_size) for x,w in self.w.items())
 
     def add_child(self, child):
         """Add a child to the neuron"""
-        self.children[child.name] = child
+        if self.children is not None:
+            self.children.append(child)
 
     def reset_memoization(self):
         """Reset memoization"""
@@ -53,11 +58,11 @@ class Neuron:
         self.y = None
         self.dJdx = None
 
-    def reset_accumulator(self,x):
+    def reset_accumulator(self):
         """Reset accumulator"""
         self.acc_dJdw = 0
 
-    def activation_function(self):
+    def activation_function(self,x):
         """Activation function for the neuron"""
         raise NotImplementedError(self)
 
