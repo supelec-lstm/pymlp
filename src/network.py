@@ -28,7 +28,6 @@ class Network:
         return np.array([output.evaluate() for output in self.outputs])
 
 
-
     def back_propagate(self, x, y):
         '''compute the gradient in each neuron of the network 
         considering the desired output y for the input x'''
@@ -43,6 +42,8 @@ class Network:
         for neuron in self.inputs:
             neuron.get_gradient()
 
+        return self.cost_neuron.evaluate()
+
 
     def descend_gradient(self, learning_rate = 0.3, batch_size = 1):
         '''apply the gradient descent in each neuron'''
@@ -53,20 +54,25 @@ class Network:
 
     def batch_gradient_descent(self, X, Y, learning_rate = 0.3):      #added learning rate argument
         '''realize a gradient descent over an entire batch at the time'''
+        
+        costs = []
 
         for x, y in zip(X, Y):
-            self.back_propagate(x, y)
+            cost.append(self.back_propagate(x, y))
 
         self.descend_gradient(learning_rate, len(X))
-
+        return costs
 
     def stochastic_gradient_descent(self, X, Y, learning_rate = 0.3):   #added learning rate argument
         '''realize a stochastic gradient descent over a batch'''
 
+        costs = []
+
         for x, y in zip(X, Y):
-            self.back_propagate(x, y)
+            costs.append(self.back_propagate(x, y))
             self.descend_gradient(learning_rate, 1)        
 
+        return costs
 
     def reset_memoization(self):
         '''reset the memoization attributes in each neuron of the network'''
